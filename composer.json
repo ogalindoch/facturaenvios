@@ -1,0 +1,22 @@
+{
+	"name"	: "euroglas/facturaenvios",
+	"type"	: "library",
+	"description"	: "Modulo de facturaenvios, para EUROGLAS",
+	"keywords"	: ["facturaenvios","rest","euroglas"],
+	"homepage":	"http://euroglas.net",
+	"license":	"agpl-3.0",
+	"authors": [{
+			"name": "Juan Pablo Soriano",
+			"email": "juanpablo.soriano@euroglas.net",
+			"role": "Developer"
+	}],
+    "require": {
+        "euroglas/dbaccess": "@dev",
+        "euroglas/pedidos": "@dev"
+    },
+	"autoload": {
+		"psr-4": {
+			"euroglas\\facturaenvios\\": "src/"
+		}
+	}
+}
