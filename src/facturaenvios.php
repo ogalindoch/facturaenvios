@@ -51,12 +51,21 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 			'token_required' => TRUE,
 		);
 
+        //
+        // Actualiza un facturaEnvio
+        //
+        $items['/facturaEnvios/[i:id]']['PUT'] = array(
+            'name' => 'actualiza un envio',
+            'callback' => 'actualizafacturaEnvio',
+            'token_required' => TRUE,
+        );
+
         return $items;
     }
-    
+
     /**
      * Define que secciones de configuracion requiere
-     * 
+     *
      * @return array Lista de secciones requeridas
      */
     public function requiereConfig()
@@ -72,12 +81,12 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 
     /**
      * Carga UNA seccion de configuración
-     * 
+     *
      * Esta función será llamada por cada seccion que indique "requiereConfig()"
-     * 
+     *
      * @param string $sectionName Nombre de la sección de configuración
      * @param array $config Arreglo con la configuracion que corresponde a la seccion indicada
-     * 
+     *
      */
     public function cargaConfig($sectionName, $config)
     {
@@ -90,13 +99,13 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 
     private function connect_db()
     {
-        //static::$configFile = $this->config['dbaccess']['config'];        
+        //static::$configFile = $this->config['dbaccess']['config'];
         //if (static::$configFile != '')
 		if ($this->config && $this->config['dbaccess'])
         {
             //$this->dbRing = new \euroglas\dbaccess\dbaccess(static::$configFile);
             $this->dbRing = new \euroglas\dbaccess\dbaccess($this->config['dbaccess']['config']);
-            
+
             if( $this->dbRing->connect('TheRing') === false )
             {
                 print($this->dbRing->getLastError());
@@ -105,10 +114,10 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
     }
 
 	function __construct()
-    {        
+    {
         $this->DEBUG = isset($_REQUEST['debug']);
     }
-    
+
     private function validaColumnas($string)
     {
         //return preg_replace('/[^a-zA-Z0-9,\s]/', '', $string); este filtro permite espacios
@@ -126,7 +135,7 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
     public function listaFacturaEnvios() {
     	/*
 		header('Access-Control-Allow-Origin: *');
-		
+
 		$envios = new ClassFacturaEnvios();
 		*/
 
@@ -161,7 +170,7 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 			}
 			$this->filtro = explode(',',$filtro );
 		}
-		
+
 		if(isset($_REQUEST['numEnvio']))
 		{
 			$numEnvio = $_REQUEST['numEnvio'];
@@ -169,10 +178,10 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 
 		$losEnvios = $this->getFacturaEnvios($pagina,$numEnvio);
 
-		if( 	
+		if(
 			(isset( $_SERVER['HTTP_ACCEPT'] ) && stripos($_SERVER['HTTP_ACCEPT'], 'JSON')!==false)
-			|| 
-			(isset( $_REQUEST['format'] ) && stripos($_REQUEST['format'], 'JSON')!==false) 
+			||
+			(isset( $_REQUEST['format'] ) && stripos($_REQUEST['format'], 'JSON')!==false)
 		)
 		{
 			header('content-type: application/json');
@@ -229,14 +238,14 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 			);
 		}
 
-		if( 
+		if(
 			(isset( $_SERVER['HTTP_ACCEPT'] ) && stripos($_SERVER['HTTP_ACCEPT'], 'json')!==false)
-			|| (isset( $_REQUEST['format'] ) && stripos($_REQUEST['format'], 'json')!==false) 
+			|| (isset( $_REQUEST['format'] ) && stripos($_REQUEST['format'], 'json')!==false)
 
 		)
 		{
 			header('content-type: application/json');
-		
+
 			//print('<pre>');print_r($elPedido);print('</pre>');
 			//$elTicket['NotaPedido'] = addcslashes($elPedido['NotaPedido'], "\r\n\t");
 
@@ -253,13 +262,13 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 			die( print_r($elEnvio,true) );
 		}
 	}
-	
+
 	private function in_array_any($needles, $haystack) {
 	   return !empty(array_intersect($needles, $haystack));
 	}
 
 	private function AddProperties($base, $newProperties)
-	{	
+	{
 		return array_merge((array)$base,(array)$newProperties);
 	}
 
@@ -320,7 +329,7 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 		);
 
 		$sth = $this->dbRing->execute_bind('queryGetEnvios','ssis',$where);
-		
+
 		if( $sth === false )
 		{
 			return $this->dbRing->getLastError();
@@ -330,7 +339,7 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 
 		$pedidos = new \euroglas\pedidos\pedidos();
 		$pedidos->cargaConfig('dbaccess', $this->config['dbaccess']);
-		
+
 		while(	$datosDelEnvio = $sth->fetch(\PDO::FETCH_ASSOC) )
 		{
 			$datosDelPedido = $pedidos->getPedidos(null,$datosDelEnvio['idPedido']);
@@ -341,7 +350,7 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 			$datosDelEnvio['links'] = array('self'=>"/facturaEnvios/{$datosDelEnvio['idEnvio']}");
 
 			if($this->DEBUG) {
-				$datosDelEnvio['debug']['factura envios']['query'] = array(					
+				$datosDelEnvio['debug']['factura envios']['query'] = array(
 					'raw'=>$this->dbRing->rawQueryPrepared('queryGetEnvios'),
 					'values' => $where,
 				);
@@ -355,7 +364,7 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 		}
 
 		//if( count($datosDePedidos) == 0 ) return false;
-		
+
 		return $datosDeEnvios;
 	}
 
@@ -382,11 +391,11 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 				$status[]='Descargado';
 			}
 		}
-		
+
 		$ArrayDatosDelTicket = $this->getFacturaEnvios(null,null,$idFacturaEnvio);
-		
+
 		if( count($ArrayDatosDelTicket) == 0 ) return false;
-		
+
 		$pedido = $ArrayDatosDelTicket[0];
 
 		#foreach ($ArrayDatosDelTicket as $pedido)
@@ -415,9 +424,9 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 				WHERE
 					ep.idFacturaEnvio = :idFacturaEnvio
 				";
-				
-				#AND 
-				#e.idEnvio = :idEnvio				
+
+				#AND
+				#e.idEnvio = :idEnvio
 				#AND e.idPedido = :idPedido
 				#AND (:Estatus = '' or e.EstatusFacturaEnvio REGEXP if (:Estatus <> '',:Estatus,'^$'))
 
@@ -433,11 +442,11 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 				//':idPedido' => $pedido['idPedido'],
 				//':Estatus' => implode("|", $status)
 			);
-			
+
 			$sth = $this->dbRing->execute('queryGetFacturasEnvioPartidas',$where);
-			
+
 			$partidasDelTicket = $sth->fetchAll(\PDO::FETCH_ASSOC);
-			
+
 			//$elPedido = $pedido['detalleDelPedido'][0];
 			//$elPedido['idFacturaEnvio'] = $pedido['idFacturaEnvio'];
 			$pedido['Partidas'] = $partidasDelTicket;
@@ -453,16 +462,174 @@ class facturaenvios implements \euroglas\eurorest\restModuleInterface
 				);
 			}
 		}
-		
+
 		return($pedido);
 	}
+
+    function getParameters()
+    {
+        // tenemos los parametros ya listos?
+        if( count($_REQUEST) > 0 ) return $_REQUEST;
+        //print_r($_REQUEST);
+
+        // No, ok... vamos a ver si los podemos decodificar como json
+        $dataStr = file_get_contents('php://input');
+        $data = array();
+
+        $dataFromJson = json_decode($dataStr,true);
+
+        switch (json_last_error()) {
+            case JSON_ERROR_NONE:
+                $data = $dataFromJson;
+                break;
+            case JSON_ERROR_SYNTAX:
+                // no estaba codificado como JSON? hay que tratar como URL query
+                parse_str($dataStr, $data);
+                break;
+
+            default:
+                // Ocurrio un error inesperado al parsear json, reportalo.
+                http_response_code(400); // 400 Bad Request
+                header('content-type: application/json');
+                die(json_encode(
+                    array(
+                        'codigo' => 400001,
+                        'mensaje' => 'Datos mal codificados.',
+                        'descripcion' => json_last_error_msg(),
+                        'detalles' => $dataStr
+                    ))
+                );
+                break;
+        }
+        //print_r($data);
+
+        return $data;
+    }
+
+    public function actualizafacturaEnvio($id=-1) {
+
+        $parametros = $this->getParameters();
+
+        if (isset($parametros['estatus']))
+        {
+            $estatus=$parametros['estatus'];
+            $estatus = $this->validaColumnas($estatus);
+
+            if($estatus===false)
+            {
+                http_response_code(400); // 400 Bad Request
+                header('content-type: application/json');
+                die(json_encode(
+                    array(
+                        'codigo' => 400003,
+                        'mensaje' => 'Invalid estatus',
+                        'descripcion' => 'El parametro estatus contiene caracteres invalidos',
+                        'detalles' => $parametros['estatus']
+                    ))
+                );
+            }
+
+            $this->setFacturaEnvio($id,$estatus);
+        }
+        else
+        {
+            die(json_encode(
+                array(
+                    'codigo' => 400002,
+                    'mensaje' => 'Missing estatus',
+                    'descripcion' => 'El parametro estatus no se encuenta',
+                    'detalles' => $_REQUEST
+                ))
+            );
+        }
+    }
+
+    private function setFacturaEnvio($id, $estatus) {
+        /*
+        if( count($this->filtro) > 0 )
+        {
+            $verNuevos=$this->in_array_any(array('Nuevo','nuevo'), $this->filtro );
+            $verCancelados=$this->in_array_any(array('Cancelado','cancelado'), $this->filtro );
+            $verDescargados=$this->in_array_any( array('Descargado','descargado'), $this->filtro );
+
+            if($verNuevos)
+            {
+                $status[]='Nuevo';
+            }
+            if($verCancelados)
+            {
+                $status[]='Cancelado';
+            }
+            if($verDescargados)
+            {
+                $status[]='Descargado';
+            }
+        }
+        */
+
+        if( ! $this->dbRing->queryPrepared('querySetFacturasEnvioEstatus') )
+        {
+            $query = "
+            UPDATE factura_envio
+            SET
+                Estatus = :Estatus
+            WHERE
+                idFacturaEnvio = :idFacturaEnvio
+            ";
+
+            $query = preg_replace("/\s+/" , " ", $query);
+            $this->dbRing->prepare($query, 'querySetFacturasEnvioEstatus');
+        }
+
+        $where = array(
+            ':idFacturaEnvio' => $idFacturaEnvio,
+            ':Estatus' => $estatus,
+        );
+
+        $sth = $this->dbRing->execute('querySetFacturasEnvioEstatus',$where);
+        $detalles = array();
+
+        if($this->DEBUG) {
+            $detalles['debug']['set factura envio']['query'] = array(
+                'raw'=>$this->dbRing->rawQueryPrepared('querySetFacturasEnvioEstatus'),
+                'values' => $where,
+            );
+            $detalles['debug']['set factura envio'] = array(
+                'respuesta' =>$sth
+            );
+        }
+
+        if( $sth === false )
+        {
+            return $this->dbRing->getLastError();
+        }
+
+        if ($sth) {
+            die(json_encode(
+                array(
+                    'codigo' => 200001,
+                    'mensaje' => 'Actualizado',
+                    'descripcion' => 'Factura envio actualizado',
+                    'detalles' => $detalles
+                ))
+            );
+        }
+        else
+        {
+             die(json_encode(
+                array(
+                    'codigo' => 400004,
+                    'mensaje' => 'Error al actualizar',
+                    'descripcion' => 'Error al actualizar factura envio',
+                    'detalles' => $detalles
+                ))
+            );
+        }
+    }
 
 	// Public Config parameters
 	public $facturaEnviosPorPagina = 10;
 	private $filtro = array();
-	private $cols=array();
-	private $origenDeSurtido = array();
-	private $pedidosPorPaginaDefault = 10;
 	private $dbRing;
 	private $DEBUG;
 }
